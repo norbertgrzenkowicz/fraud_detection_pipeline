@@ -4,7 +4,6 @@ from typing import Optional, List, Union
 import logging
 from datetime import datetime
 
-# Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -36,15 +35,12 @@ def fetch_from_postgresql(
         pandas DataFrame containing the query results or None if failed
     """
     try:
-        # Build query if not provided
         if query is None:
             if table_name is None:
                 raise ValueError("Either query or table_name must be provided")
 
-            # Construct SELECT clause
             select_clause = "*" if not columns else ", ".join(columns)
 
-            # Build the query
             query = f"SELECT {select_clause} FROM {table_name}"
             if conditions:
                 query += f" WHERE {conditions}"
@@ -57,10 +53,8 @@ def fetch_from_postgresql(
 
         with psycopg.connect(conn_string) as conn:
             if chunk_size:
-                # Fetch data in chunks for large datasets
                 return pd.read_sql_query(query, conn, chunksize=chunk_size)
             else:
-                # Fetch all data at once
                 return pd.read_sql_query(query, conn)
 
     except Exception as e:
@@ -68,12 +62,9 @@ def fetch_from_postgresql(
         return None
 
 
-# Example usage
 if __name__ == "__main__":
-    # Example connection string
-    conn_string = "host=localhost port=5432 dbname=fraud_db user=norbert password=os.getenv("DB_PASS")"
+    conn_string = f"host=localhost port=5432 dbname=fraud_db user=norbert password={os.getenv("DB_PASS")}"
 
-    # Example 1: Simple table fetch
     df = fetch_from_postgresql(
         conn_string=conn_string, table_name="transactions", limit=1000
     )

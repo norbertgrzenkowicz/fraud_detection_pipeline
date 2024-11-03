@@ -9,7 +9,6 @@ import os
 import shutil
 
 # Constants
-MODEL_SERVICE_PATH = "/home/norbert/repos/ai_realm/MLOps_fruad/fraud_detection_api"  # Path to your model service directory
 DOCKER_REGISTRY = "docker.io"  # Your docker registry
 MODEL_SERVICE_IMAGE = f"{DOCKER_REGISTRY}/fraud-api"
 NAMESPACE = "default"
@@ -22,7 +21,7 @@ def copy_model_to_service():
         source_model = "/path/to/airflow/trained_models/model.pkl"
 
         # Destination path in the model service directory
-        dest_model = os.path.join(MODEL_SERVICE_PATH, "api/model.pkl")
+        dest_model = os.path.join(os.getenv("MODEL_SERVICE_PATH"), "api/model.pkl")
 
         # Copy the model file
         shutil.copy2(source_model, dest_model)
@@ -43,7 +42,9 @@ def build_and_push_image():
 
         # Build the Docker image
         client.images.build(
-            path=MODEL_SERVICE_PATH, tag=full_image_name, dockerfile="Dockerfile"
+            path=os.getenv("MODEL_SERVICE_PATH"),
+            tag=full_image_name,
+            dockerfile="Dockerfile",
         )
 
         # Push the image
@@ -58,21 +59,16 @@ def build_and_push_image():
 def update_k8s_deployment(image_name):
     """Update the Kubernetes deployment with the new image"""
     try:
-        # Load kubernetes configuration
-        config.load_incluster_config()  # For running inside kubernetes
+        config.load_incluster_config()
 
-        # Create kubernetes API client
         api = client.AppsV1Api()
 
-        # Get the current deployment
         deployment = api.read_namespaced_deployment(
             name="fraud-api", namespace=NAMESPACE
         )
         api.read_
-        # Update the container image
         deployment.spec.template.spec.containers[0].image = image_name
 
-        # Update the deployment
         api.patch_namespaced_deployment(
             name="fraud-api", namespace=NAMESPACE, body=deployment
         )
@@ -83,7 +79,6 @@ def update_k8s_deployment(image_name):
         raise
 
 
-# Define the DAG
 default_args = {
     "owner": "airflow",
     "depends_on_past": False,
@@ -98,11 +93,10 @@ dag = DAG(
     "model_service_update",
     default_args=default_args,
     description="Update model service with new model",
-    schedule_interval=None,  # Triggered manually or by other DAGs
+    schedule_interval=None,
     catchup=False,
 )
 
-# Define the tasks
 copy_model = PythonOperator(
     task_id="copy_model", python_callable=copy_model_to_service, dag=dag
 )
@@ -118,5 +112,4 @@ update_deployment = PythonOperator(
     dag=dag,
 )
 
-# Set task dependencies
 copy_model >> build_image >> update_deployment

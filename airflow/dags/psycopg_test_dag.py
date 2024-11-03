@@ -1,6 +1,7 @@
 import psycopg
 import pandas as pd
 from typing import Optional
+import os
 
 
 def insert_transactions(df: pd.DataFrame, conn_string: str) -> Optional[int]:
@@ -8,7 +9,6 @@ def insert_transactions(df: pd.DataFrame, conn_string: str) -> Optional[int]:
     try:
         with psycopg.connect(conn_string) as conn:
             with conn.cursor() as cur:
-                # Create table if not exists
                 cur.execute("""
                    CREATE TABLE IF NOT EXISTS transactions (
                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -25,7 +25,6 @@ def insert_transactions(df: pd.DataFrame, conn_string: str) -> Optional[int]:
                    );
                """)
 
-                # Prepare data and insert
                 values = [
                     (
                         row["Time"],
@@ -115,9 +114,8 @@ def get_fraud_stats(conn_string: str) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    conn_string = "host=localhost port=5432 dbname=fraud_db user=norbert password=os.getenv("DB_PASS")"
+    conn_string = f"host=localhost port=5432 dbname=fraud_db user=norbert password={os.getenv("DB_PASS")}"
 
-    # Sample data
     sample_data = {
         "Time": [151286.0],
         "Amount": [0.788034601603],

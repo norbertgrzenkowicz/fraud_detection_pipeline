@@ -4,7 +4,6 @@ from typing import Optional, Dict, List
 import logging
 from pathlib import Path
 
-# Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -31,14 +30,12 @@ def create_table_query(
     for col_name, dtype in df.dtypes.items():
         pg_type = get_postgres_type(dtype)
 
-        # Apply any extra constraints if specified
         constraints = ""
         if extra_constraints and col_name in extra_constraints:
             constraints = " " + extra_constraints[col_name]
 
         columns.append(f"{col_name.lower()} {pg_type}{constraints}")
 
-    # Add created_at timestamp and id as primary key
     columns = [
         "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
         "id SERIAL PRIMARY KEY",
@@ -74,11 +71,9 @@ def csv_to_postgresql(
         Number of rows inserted or None if failed
     """
     try:
-        # Verify file exists
         if not Path(csv_path).exists():
             raise FileNotFoundError(f"CSV file not found: {csv_path}")
 
-        # Read CSV file
         logger.info(f"Reading CSV file: {csv_path}")
         df = pd.read_csv(csv_path)
         if date_columns:
@@ -88,19 +83,15 @@ def csv_to_postgresql(
         total_rows = 0
         with psycopg.connect(conn_string) as conn:
             with conn.cursor() as cur:
-                # Create table
                 create_query = create_table_query(df, table_name, extra_constraints)
                 logger.info("Creating table if not exists")
                 cur.execute(create_query)
 
-                # Insert data in chunks
                 for i in range(0, len(df), chunk_size):
                     chunk = df.iloc[i : i + chunk_size]
 
-                    # Prepare values for insertion
                     values = [tuple(row) for _, row in chunk.iterrows()]
 
-                    # Generate the INSERT query
                     placeholders = ",".join(["%s"] * len(df.columns))
                     columns = ",".join(df.columns.str.lower())
                     insert_query = f"""
@@ -108,7 +99,6 @@ def csv_to_postgresql(
                         VALUES ({placeholders})
                     """
 
-                    # Execute insertion
                     cur.executemany(insert_query, values)
                     total_rows += len(values)
                     logger.info(f"Inserted {total_rows} rows so far...")
@@ -122,12 +112,9 @@ def csv_to_postgresql(
         return None
 
 
-# Example usage
 if __name__ == "__main__":
-    # Example connection string
-    conn_string = "host=localhost port=5432 dbname=fraud_db user=norbert password=os.getenv("DB_PASS")"
+    conn_string = f"host=localhost port=5432 dbname=fraud_db user=norbert password={os.getenv("DB_PASS")}"
 
-    # Example with the transactions table from your original function
     constraints = {"class": "CHECK (class IN (0, 1))"}
 
     rows_inserted = csv_to_postgresql(

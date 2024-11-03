@@ -9,6 +9,7 @@ import numpy as np
 import pickle
 import psycopg
 from typing import Optional
+import os
 
 default_args = {
     "owner": "airflow",
@@ -26,7 +27,6 @@ def insert_transactions(df: pd.DataFrame, conn_string: str) -> Optional[int]:
     try:
         with psycopg.connect(conn_string) as conn:
             with conn.cursor() as cur:
-                # Create table if not exists
                 cur.execute("""
                    CREATE TABLE IF NOT EXISTS transactions (
                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -43,7 +43,6 @@ def insert_transactions(df: pd.DataFrame, conn_string: str) -> Optional[int]:
                    );
                """)
 
-                # Prepare data and insert
                 values = [
                     (
                         row["Time"],
@@ -144,7 +143,8 @@ def process_messages(ti) -> None:
 
         df["Class"] = predictions[0]
         insert_transactions(
-            df, "host=localhost port=5432 dbname=fraud_db user=norbert password=os.getenv("DB_PASS")"
+            df,
+            f"host=localhost port=5432 dbname=fraud_db user=norbert password={os.getenv("DB_PASS")}",
         )
         if predictions[0] == 1:
             print(

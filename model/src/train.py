@@ -42,7 +42,7 @@ import database.fetch_psql_table as fetch_psql_table
 
 warnings.filterwarnings("ignore")
 
-conn_string = "host=localhost port=5432 dbname=fraud_db user=norbert password=os.getenv("DB_PASS")"
+conn_string = f"host=localhost port=5432 dbname=fraud_db user=norbert password={os.getenv("DB_PASS")}"
 
 
 def load_data(path):

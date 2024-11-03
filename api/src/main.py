@@ -8,13 +8,11 @@ from datetime import datetime
 import logging
 from typing import Dict
 
-# Initialize logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
-# Initialize FastAPI app
 app = FastAPI(
     title="Credit Card Fraud Detection API",
     description="API for detecting fraudulent credit card transactions",
@@ -22,7 +20,6 @@ app = FastAPI(
 )
 
 
-# Define transaction model
 class Transaction(BaseModel):
     Time: float
     V1: float
@@ -99,7 +96,6 @@ class PredictionResponse(BaseModel):
     transaction_amount: float
 
 
-# Load the pickled model
 try:
     with open("lr_model.pkl", "rb") as file:
         model = pickle.load(file)
@@ -140,14 +136,11 @@ async def health_check():
 @app.post("/predict", response_model=PredictionResponse)
 async def predict(transaction: Transaction):
     try:
-        # Convert transaction to DataFrame
         features = pd.DataFrame([transaction.dict()])
 
-        # Ensure correct column order
         columns = ["Time"] + [f"V{i}" for i in range(1, 29)] + ["Amount"]
         features = features[columns]
 
-        # Make prediction
         probability = model.predict_proba(features)[0][1]
         prediction = int(probability >= 0.5)
 
@@ -158,7 +151,6 @@ async def predict(transaction: Transaction):
             transaction_amount=transaction.Amount,
         )
 
-        # Log the prediction
         logger.info(
             f"Prediction made - Amount: {transaction.Amount}, "
             f"Prediction: {prediction}, Probability: {probability:.4f}"

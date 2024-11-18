@@ -3,6 +3,7 @@ import psycopg
 from typing import Optional, List, Union
 import logging
 from datetime import datetime
+import os
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

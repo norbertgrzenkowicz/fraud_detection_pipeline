@@ -3,6 +3,7 @@ import psycopg
 from typing import Optional, Dict, List
 import logging
 from pathlib import Path
+import os
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

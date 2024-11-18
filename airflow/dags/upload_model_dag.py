@@ -8,8 +8,7 @@ import docker
 import os
 import shutil
 
-# Constants
-DOCKER_REGISTRY = "docker.io"  # Your docker registry
+DOCKER_REGISTRY = "docker.io"
 MODEL_SERVICE_IMAGE = f"{DOCKER_REGISTRY}/fraud-api"
 NAMESPACE = "default"
 
@@ -17,13 +16,10 @@ NAMESPACE = "default"
 def copy_model_to_service():
     """Copy the newly trained model.pkl to the model service directory"""
     try:
-        # Source path of the newly trained model (adjust as needed)
         source_model = "/path/to/airflow/trained_models/model.pkl"
 
-        # Destination path in the model service directory
         dest_model = os.path.join(os.getenv("MODEL_SERVICE_PATH"), "api/model.pkl")
 
-        # Copy the model file
         shutil.copy2(source_model, dest_model)
         return True
     except Exception as e:

@@ -8,6 +8,7 @@ from sklearn.decomposition import PCA, TruncatedSVD
 import matplotlib.patches as mpatches
 import time
 import pickle
+import os
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC

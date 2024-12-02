@@ -1,5 +1,4 @@
 # Fraud Detection System
-# PLACEHOLDER README. DONT READ IT. JUST WATCH
 
 ## Overview
 A real-time fraud detection system that processes credit card transactions through a streaming pipeline using Apache Kafka, detects potential fraud using machine learning models, and provides API endpoints for predictions.

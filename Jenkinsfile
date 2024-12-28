@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://https://github.com/norbertgrzenkowicz/fraud_detection_pipeline.git'
+                git 'https://github.com/norbertgrzenkowicz/fraud_detection_pipeline.git'
             }
         }
         stage('Build') {

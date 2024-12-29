@@ -5,7 +5,6 @@ import json
 from datetime import datetime, timedelta
 import pandas as pd
 from typing import List
-import numpy as np
 import pickle
 import psycopg
 from typing import Optional

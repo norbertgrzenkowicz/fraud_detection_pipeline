@@ -15,8 +15,11 @@ spec:
         app: airflow
     spec:
       containers:
-      - name: api
+      - name: airflow
         image: docker.io/apache/airflow:latest
         # imagePullPolicy: Always
         ports:
-        - containerPort: 8300
+          - containerPort: 8080
+        command:
+          - "airflow"
+          - "standalone"

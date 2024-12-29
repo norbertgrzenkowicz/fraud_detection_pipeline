@@ -6,5 +6,5 @@ spec:
   selector:
     app: airflow
   ports:
-  - port: 8080
-    targetPort: 8300
+  - port: 8090
+    targetPort: 8080

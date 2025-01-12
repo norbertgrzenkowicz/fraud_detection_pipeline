@@ -1,6 +1,7 @@
 from airflow import DAG
 from airflow.providers.docker.operators.docker import DockerOperator
-from airflow.providers.cncf.kubernetes.operators.kubernetes import KubernetesOperator
+
+# from airflow.providers.cncf.kubernetes.operators.kubernetes import KubernetesOperator
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 from kubernetes import client, config

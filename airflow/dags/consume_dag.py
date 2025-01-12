@@ -143,7 +143,7 @@ def process_messages(ti) -> None:
         df["Class"] = predictions[0]
         insert_transactions(
             df,
-            f"host=localhost port=5432 dbname=fraud_db user=norbert password={os.getenv("DB_PASS")}",
+            f"host=postgres port=5432 dbname=fraud_db user=norbert password={os.getenv("DB_PASS")}",
         )
         if predictions[0] == 1:
             print(

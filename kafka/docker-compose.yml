@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  kafka_producer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kafka_producer
+    # ports:
+    #   - "9092:9092"
+    volumes:
+      - ./src/synthetic_data.py:/app/synthetic_data.py
+      - ../model/lr_model.pkl:/app/lr_model.pkl
+      - ../
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=172.17.0.1:9092
+    # command: ["python3", "synthetic_data.py"]

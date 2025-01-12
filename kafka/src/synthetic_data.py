@@ -4,10 +4,11 @@ from kafka import KafkaProducer
 import json
 import time
 import logging
+import os
 
 
 class TransactionGenerator:
-    def __init__(self, kafka_bootstrap_servers=["localhost:9092"]):
+    def __init__(self, kafka_bootstrap_servers=[os.getenv("KAFKA_BOOTSTRAP_SERVERS")]):
         """Initialize the transaction generator and Kafka producer"""
         self.producer = KafkaProducer(
             bootstrap_servers=kafka_bootstrap_servers,

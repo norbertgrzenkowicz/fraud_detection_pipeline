@@ -10,7 +10,6 @@ import os
 class TransactionGenerator:
     def __init__(self, kafka_bootstrap_servers=[os.getenv("KAFKA_BOOTSTRAP_SERVERS")]):
         """Initialize the transaction generator and Kafka producer"""
-        print(os.getenv("KAFKA_BOOTSTRAP_SERVERS"))
         self.producer = KafkaProducer(
             bootstrap_servers=kafka_bootstrap_servers,
             value_serializer=lambda x: json.dumps(x).encode("utf-8"),
@@ -55,7 +54,7 @@ class TransactionGenerator:
                 if transaction_count % 100 == 0:
                     self.logger.info(f"Sent record {transaction_count}")
 
-                time.sleep(delay)
+                # time.sleep(delay)
 
         except Exception as e:
             self.logger.error(f"Error generating transactions: {str(e)}")
@@ -75,9 +74,8 @@ def main():
         generator = TransactionGenerator()
 
         generator.generate_and_send_transactions(
-            n_transactions=50, delay=1, topic="fraud"
+            n_transactions=200, delay=0.1, topic="fraud"
         )
-        print("LOOOl")
     except KeyboardInterrupt:
         print("Stopping transaction generation...")
     except Exception as e:
@@ -87,7 +85,5 @@ def main():
 
 
 if __name__ == "__main__":
-    import time
-
     time.sleep(5)
     main()

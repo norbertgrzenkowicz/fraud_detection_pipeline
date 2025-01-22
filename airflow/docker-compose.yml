@@ -1,31 +1,39 @@
 services:
-  postgres:
-    image: postgres:latest
-    container_name: postgres
-    environment:
-      POSTGRES_DB: credit-card
-      POSTGRES_USER: norbert
-      POSTGRES_PASSWORD: 4829
-    ports:
-      - "5433:5432"
+  kafka_producer:
+    build:
+      context: .
+      dockerfile: ../kafka/Dockerfile
+    container_name: kafka_producer
+    # depends_on:
+    #   - kafka
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ../kafka/src:/app
+      # - ../data/creditcard.csv:/app/data/creditcard.csv
+      # - ../model/lr_model.pkl:/app/lr_model.pkl
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    # command: ["python3", "kafka_credit_card_data_producer.py"]
+    command: ["python3", "synthetic_data.py"]
 
   airflow:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: airflow
-    depends_on:
-      - postgres
+    # depends_on:
+    #   - postgres
+    #   - kafka
     ports:
       - "8090:8090"
     environment:
-      - DB_PASS=4829
+      - DB_PASS=1111
       - AIRFLOW_HOME=~/airflow
       - AIRFLOW__WEBSERVER__WEB_SERVER_PORT=8090
-      # - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgres://norbert:4829@postgres:5432/credit-card
+      # - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgres://norbert:1111@postgres:5432/credit-card
       - AIRFLOW__CORE__DAGS_FOLDER=/opt/airflow/dags
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - MODEL_PATH=/app/lr_model.pkl
+      - MODEL_SERVICE_PATH=/app/api
       # airflow connections create-default-connections &&
     command: >
       bash -c "
@@ -37,6 +45,28 @@ services:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
-
+      - ../model/:/app/model
+      - ../api:/app/api
+      - ../database:/app/database
+      - /var/run/docker.sock:/var/run/docker.sock  # Mount Docker socket
+    user: root
+  kafka:
+    image: apache/kafka:3.8.0
+    container_name: kafka
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://kafka:9092,CONTROLLER://kafka:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 3
+    ports:
+      - "9092:9092"
 volumes:
   postgres_data:

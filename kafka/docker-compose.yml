@@ -26,14 +26,13 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: kafka_producer
-    depends_on:
-      - kafka
     volumes:
-      - ./src/synthetic_data.py:/app/synthetic_data.py
+      - ./src:/app
       - ../model/lr_model.pkl:/app/lr_model.pkl
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     command: ["python3", "synthetic_data.py"]
+    # command: ["python3", "kafka_credit_card_data_producer.py"]
     # networks:
     #   - kafka_network
 

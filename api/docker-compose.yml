@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  fastapi:
+    image: norbertgrzenkowicz/fraud-api:latest
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: fastapi
+    ports:
+      - "8100:8100"
+    # volumes:
+    #   - ./api:/code

@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+  postgres:
+    extends:
+      file: ./database/docker-compose.yml
+      service: postgres
+
+  kafka:
+    extends:
+      file: ./kafka/docker-compose.yml
+      service: kafka
+
+  kafka_producer:
+    extends:
+      file: ./kafka/docker-compose.yml
+      service: kafka_producer
+
+  airflow:
+    extends:
+      file: ./airflow/docker-compose.yml
+      service: airflow
+
+  fastapi:
+    extends:
+      file: ./api/docker-compose.yml
+      service: fastapi
+
+volumes:
+  postgres_data:
+  kafka_data:
+  kafka_metadata:

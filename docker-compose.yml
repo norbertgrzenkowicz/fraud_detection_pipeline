@@ -19,11 +19,11 @@ services:
     extends:
       file: ./airflow/docker-compose.yml
       service: airflow
-
-  fastapi:
-    extends:
-      file: ./api/docker-compose.yml
-      service: fastapi
+  # Uncomment to test fresh FastAPI
+  # fastapi:
+  #   extends:
+  #     file: ./api/docker-compose.yml
+  #     service: fastapi
 
 volumes:
   postgres_data:

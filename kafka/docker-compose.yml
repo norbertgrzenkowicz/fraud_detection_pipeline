@@ -1,0 +1,41 @@
+version: '3.8'
+services:
+  kafka:
+    image: apache/kafka:3.8.0
+    container_name: kafka
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://kafka:9092,CONTROLLER://kafka:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 3
+    ports:
+      - "9092:9092"
+    # volumes:
+    #   - kafka_data:/tmp/kraft-logs
+
+  kafka_producer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kafka_producer
+    volumes:
+      - ./src:/app
+      - ../model/lr_model.pkl:/app/lr_model.pkl
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    command: ["python3", "synthetic_data.py"]
+    # command: ["python3", "kafka_credit_card_data_producer.py"]
+    # networks:
+    #   - kafka_network
+
+# networks:
+#   kafka_network:
+#     name: kafka_network

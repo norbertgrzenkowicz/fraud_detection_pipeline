@@ -4,10 +4,11 @@ from kafka import KafkaProducer
 import json
 import time
 import logging
+import os
 
 
 class TransactionGenerator:
-    def __init__(self, kafka_bootstrap_servers=["localhost:9092"]):
+    def __init__(self, kafka_bootstrap_servers=[os.getenv("KAFKA_BOOTSTRAP_SERVERS")]):
         """Initialize the transaction generator and Kafka producer"""
         self.producer = KafkaProducer(
             bootstrap_servers=kafka_bootstrap_servers,
@@ -46,13 +47,14 @@ class TransactionGenerator:
                     break
 
                 transaction = self.generate_single_transaction()
+                print(transaction)
                 self.producer.send(topic, value=transaction)
 
                 transaction_count += 1
                 if transaction_count % 100 == 0:
                     self.logger.info(f"Sent record {transaction_count}")
 
-                time.sleep(delay)
+                # time.sleep(delay)
 
         except Exception as e:
             self.logger.error(f"Error generating transactions: {str(e)}")
@@ -72,9 +74,8 @@ def main():
         generator = TransactionGenerator()
 
         generator.generate_and_send_transactions(
-            n_transactions=50, delay=1, topic="fraud"
+            n_transactions=200, delay=0.1, topic="fraud"
         )
-
     except KeyboardInterrupt:
         print("Stopping transaction generation...")
     except Exception as e:
@@ -84,4 +85,5 @@ def main():
 
 
 if __name__ == "__main__":
+    time.sleep(5)
     main()

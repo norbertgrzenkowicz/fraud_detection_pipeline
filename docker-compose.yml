@@ -1,44 +1,31 @@
 version: '3.8'
-
-includes:
-  - database/docker-compose.yml
-  - api/docker-compose.yml
-  - kafka/docker-compose.yml
-  - airflow/docker-compose.yml
-
 services:
-  airflow:
-    build: 
-      context: ./airflow
-    volumes:
-      - ./airflow/dags:/opt/airflow/dags
-    environment:
-      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
-    depends_on:
-      - postgres
-      - kafka
-
-  api:
-    build: ./api
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./model/models:/app/models
-    depends_on:
-      - kafka
-      - postgres
+  postgres:
+    extends:
+      file: ./database/docker-compose.yml
+      service: postgres
 
   kafka:
-    build: ./kafka
-    ports:
-      - "9092:9092"
-    environment:
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181 
+    extends:
+      file: ./kafka/docker-compose.yml
+      service: kafka
 
-  # zookeeper:
-  #   image: wurstmeister/zookeeper
-  #   ports:
-  #     - "2181:2181"
+  kafka_producer:
+    extends:
+      file: ./kafka/docker-compose.yml
+      service: kafka_producer
+
+  airflow:
+    extends:
+      file: ./airflow/docker-compose.yml
+      service: airflow
+  # Uncomment to test fresh FastAPI
+  # fastapi:
+  #   extends:
+  #     file: ./api/docker-compose.yml
+  #     service: fastapi
+
+volumes:
+  postgres_data:
+  kafka_data:
+  kafka_metadata:

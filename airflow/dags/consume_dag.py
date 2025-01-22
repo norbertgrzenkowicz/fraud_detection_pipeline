@@ -10,6 +10,8 @@ import psycopg
 from typing import Optional
 import os
 
+MODEL_PATH = "/app/model/lr_model.pkl"
+
 default_args = {
     "owner": "airflow",
     "depends_on_past": False,
@@ -78,7 +80,6 @@ def insert_transactions(df: pd.DataFrame, conn_string: str) -> Optional[int]:
                     )
                     for _, row in df.iterrows()
                 ]
-                print("dupa")
 
                 cur.executemany(
                     """
@@ -105,7 +106,8 @@ def insert_transactions(df: pd.DataFrame, conn_string: str) -> Optional[int]:
 def consume_from_kafka(**context) -> List[dict]:
     consumer = KafkaConsumer(
         "fraud",
-        bootstrap_servers=["localhost:9092"],
+        bootstrap_servers=["kafka:9092"],
+        # bootstrap_servers=[os.getenv("KAFKA_BOOTSTRAP_SERVERS")],
         auto_offset_reset="earliest",
         enable_auto_commit=True,
         group_id="airflow_consumer_group",
@@ -131,7 +133,7 @@ def process_messages(ti) -> None:
         print("No messages to process")
         return
 
-    with open("lr_model.pkl", "rb") as f:
+    with open(MODEL_PATH, "rb") as f:
         model = pickle.load(f)
 
     for message in messages:
@@ -143,7 +145,7 @@ def process_messages(ti) -> None:
         df["Class"] = predictions[0]
         insert_transactions(
             df,
-            f"host=localhost port=5432 dbname=fraud_db user=norbert password={os.getenv("DB_PASS")}",
+            f"host=postgres port=5432 dbname=credit-card user=norbert password={os.getenv('DB_PASS')}",
         )
         if predictions[0] == 1:
             print(

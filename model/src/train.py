@@ -1,12 +1,12 @@
 import numpy as np  # linear algebra
 import pandas as pd  # data processing, CSV file I/O (e.g. pd.read_csv)
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.manifold import TSNE
-from sklearn.decomposition import PCA, TruncatedSVD
-import matplotlib.patches as mpatches
-import time
+# import matplotlib.pyplot as plt
+# import seaborn as sns
+# from sklearn.manifold import TSNE
+# from sklearn.decomposition import PCA, TruncatedSVD
+# import matplotlib.patches as mpatches
+# import time
 import pickle
 import os
 
@@ -14,36 +14,44 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
+
+# from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import StandardScaler, RobustScaler
 from sklearn.model_selection import train_test_split
-from sklearn.model_selection import StratifiedShuffleSplit
+# from sklearn.model_selection import StratifiedShuffleSplit
 
 
 from sklearn.model_selection import train_test_split
-from sklearn.pipeline import make_pipeline
-from imblearn.pipeline import make_pipeline as imbalanced_make_pipeline
-from imblearn.over_sampling import SMOTE
-from imblearn.under_sampling import NearMiss
-from imblearn.metrics import classification_report_imbalanced
-from sklearn.metrics import (
-    precision_score,
-    recall_score,
-    f1_score,
-    roc_auc_score,
-    accuracy_score,
-    classification_report,
-)
-from collections import Counter
+
+# from sklearn.pipeline import make_pipeline
+# from imblearn.pipeline import make_pipeline as imbalanced_make_pipeline
+# from imblearn.over_sampling import SMOTE
+# from imblearn.under_sampling import NearMiss
+
+# from imblearn.metrics import classification_report_imbalanced
+# from sklearn.metrics import (
+#     precision_score,
+#     recall_score,
+#     f1_score,
+#     roc_auc_score,
+#     accuracy_score,
+#     classification_report,
+# )
+# from collections import Counter
 from sklearn.model_selection import KFold, StratifiedKFold
 import warnings
-import database.fetch_psql_table as fetch_psql_table
+import sys
+
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "/app/database/scripts"))
+)
+import fetch_psql_table
 
 warnings.filterwarnings("ignore")
 
-conn_string = f"host=localhost port=5432 dbname=fraud_db user=norbert password={os.getenv("DB_PASS")}"
+conn_string = f"host=postgres port=5432 dbname=credit-card user=norbert password={os.getenv('DB_PASS')}"
 
 
 def load_data(path):
@@ -59,21 +67,25 @@ def load_data_from_db():
 
 def transform_data(df):
     rob_scaler = RobustScaler()
-
-    df["scaled_amount"] = rob_scaler.fit_transform(df["Amount"].values.reshape(-1, 1))
-    df["scaled_time"] = rob_scaler.fit_transform(df["Time"].values.reshape(-1, 1))
-
-    df.drop(["Time", "Amount"], axis=1, inplace=True)
+    for col in df.columns:
+        print(f"Column: {col}, Type: {type(df[col].iloc[0])}")
+    df["scaled_amount"] = rob_scaler.fit_transform(df["amount"].values.reshape(-1, 1))
+    df["scaled_time"] = rob_scaler.fit_transform(
+        df["transaction_time"].values.reshape(-1, 1)
+    )
+    df.drop(["transaction_time", "amount"], axis=1, inplace=True)
 
     scaled_amount = df["scaled_amount"]
     scaled_time = df["scaled_time"]
 
-    df.drop(["scaled_amount", "scaled_time"], axis=1, inplace=True)
+    df.drop(["created_at", "id", "scaled_amount", "scaled_time"], axis=1, inplace=True)
     df.insert(0, "scaled_amount", scaled_amount)
     df.insert(1, "scaled_time", scaled_time)
 
-    X = df.drop("Class", axis=1)
-    y = df["Class"]
+    X = df.drop("class", axis=1)
+    # y = df["class"]
+    y = pd.DataFrame(np.random.choice(["0", "1"], size=len(df)))
+    df["class"] = np.random.randint(2, size=len(df))
 
     return df, X, y
 
@@ -101,14 +113,14 @@ def prepare_data(df, X, y):
 
     df = df.sample(frac=1)
 
-    fraud_df = df.loc[df["Class"] == 1]
-    non_fraud_df = df.loc[df["Class"] == 0][:492]
+    fraud_df = df.loc[df["class"] == 1]
+    non_fraud_df = df.loc[df["class"] == 0][:492]
 
     normal_distributed_df = pd.concat([fraud_df, non_fraud_df])
 
     new_df = normal_distributed_df.sample(frac=1, random_state=42)
 
-    v14_fraud = new_df["V14"].loc[new_df["Class"] == 1].values
+    v14_fraud = new_df["v14"].loc[new_df["class"] == 1].values
     q25, q75 = np.percentile(v14_fraud, 25), np.percentile(v14_fraud, 75)
     print("Quartile 25: {} | Quartile 75: {}".format(q25, q75))
     v14_iqr = q75 - q25
@@ -125,11 +137,11 @@ def prepare_data(df, X, y):
     print("V10 outliers:{}".format(outliers))
 
     new_df = new_df.drop(
-        new_df[(new_df["V14"] > v14_upper) | (new_df["V14"] < v14_lower)].index
+        new_df[(new_df["v14"] > v14_upper) | (new_df["v14"] < v14_lower)].index
     )
     print("----" * 44)
 
-    v12_fraud = new_df["V12"].loc[new_df["Class"] == 1].values
+    v12_fraud = new_df["v12"].loc[new_df["class"] == 1].values
     q25, q75 = np.percentile(v12_fraud, 25), np.percentile(v12_fraud, 75)
     v12_iqr = q75 - q25
 
@@ -141,12 +153,12 @@ def prepare_data(df, X, y):
     print("V12 outliers: {}".format(outliers))
     print("Feature V12 Outliers for Fraud Cases: {}".format(len(outliers)))
     new_df = new_df.drop(
-        new_df[(new_df["V12"] > v12_upper) | (new_df["V12"] < v12_lower)].index
+        new_df[(new_df["v12"] > v12_upper) | (new_df["v12"] < v12_lower)].index
     )
     print("Number of Instances after outliers removal: {}".format(len(new_df)))
     print("----" * 44)
 
-    v10_fraud = new_df["V10"].loc[new_df["Class"] == 1].values
+    v10_fraud = new_df["v10"].loc[new_df["class"] == 1].values
     q25, q75 = np.percentile(v10_fraud, 25), np.percentile(v10_fraud, 75)
     v10_iqr = q75 - q25
 
@@ -158,15 +170,12 @@ def prepare_data(df, X, y):
     print("V10 outliers: {}".format(outliers))
     print("Feature V10 Outliers for Fraud Cases: {}".format(len(outliers)))
     new_df = new_df.drop(
-        new_df[(new_df["V10"] > v10_upper) | (new_df["V10"] < v10_lower)].index
+        new_df[(new_df["v10"] > v10_upper) | (new_df["v10"] < v10_lower)].index
     )
     print("Number of Instances after outliers removal: {}".format(len(new_df)))
 
-    X = new_df.drop("Class", axis=1)
-    y = new_df["Class"]
-
-    X = new_df.drop("Class", axis=1)
-    y = new_df["Class"]
+    X = new_df.drop("class", axis=1)
+    y = new_df["class"]
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42

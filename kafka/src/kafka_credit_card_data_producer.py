@@ -2,13 +2,16 @@ import pandas as pd
 from kafka import KafkaProducer
 import json
 import time
+import os
+
+time.sleep(5)
 
 producer = KafkaProducer(
-    bootstrap_servers=["localhost:9092"],
+    bootstrap_servers=["kafka:9092"],
     value_serializer=lambda x: json.dumps(x).encode("utf-8"),
 )
 
-df = pd.read_csv("creditcard.csv")
+df = pd.read_csv("/app/data/creditcard.csv")
 
 for index, row in df.iterrows():
     data = row.to_dict()

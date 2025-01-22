@@ -1,16 +1,13 @@
 version: '3.8'
 services:
-  db:
+  postgres:
     image: postgres:latest
-    restart: always
+    container_name: postgres
     environment:
-      POSTGRES_USER: norbert
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: credit-card
+      POSTGRES_USER: norbert
+      POSTGRES_PASSWORD: 1111
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
-volumes:
-  postgres_data:

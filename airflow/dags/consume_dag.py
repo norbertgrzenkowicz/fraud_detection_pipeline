@@ -10,7 +10,6 @@ import psycopg
 from typing import Optional
 import os
 
-MODEL_PATH = "/app/model/lr_model.pkl"
 
 default_args = {
     "owner": "airflow",
@@ -28,8 +27,9 @@ def insert_transactions(df: pd.DataFrame, conn_string: str) -> Optional[int]:
     try:
         with psycopg.connect(conn_string) as conn:
             with conn.cursor() as cur:
-                cur.execute("""
-                   CREATE TABLE IF NOT EXISTS transactions (
+                cur.execute(
+                    f"""
+                   CREATE TABLE IF NOT EXISTS {os.getenv("POSTGRES_TABLE")} (
                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                        id SERIAL PRIMARY KEY,
                        transaction_time FLOAT,
@@ -42,7 +42,8 @@ def insert_transactions(df: pd.DataFrame, conn_string: str) -> Optional[int]:
                        v26 FLOAT, v27 FLOAT, v28 FLOAT,
                        class INTEGER CHECK (class IN (0, 1))
                    );
-               """)
+               """,
+                )
 
                 values = [
                     (
@@ -82,8 +83,8 @@ def insert_transactions(df: pd.DataFrame, conn_string: str) -> Optional[int]:
                 ]
 
                 cur.executemany(
-                    """
-                   INSERT INTO transactions (
+                    f"""
+                   INSERT INTO {os.getenv("POSTGRES_TABLE")} (
                        transaction_time, amount,
                        v1, v2, v3, v4, v5, v6, v7, v8, v9, v10,
                        v11, v12, v13, v14, v15, v16, v17, v18, v19, v20,
@@ -105,9 +106,8 @@ def insert_transactions(df: pd.DataFrame, conn_string: str) -> Optional[int]:
 
 def consume_from_kafka(**context) -> List[dict]:
     consumer = KafkaConsumer(
-        "fraud",
-        bootstrap_servers=["kafka:9092"],
-        # bootstrap_servers=[os.getenv("KAFKA_BOOTSTRAP_SERVERS")],
+        os.getenv("KAFKA_TOPIC"),
+        bootstrap_servers=[os.getenv("KAFKA_BOOTSTRAP_SERVERS")],
         auto_offset_reset="earliest",
         enable_auto_commit=True,
         group_id="airflow_consumer_group",
@@ -133,7 +133,7 @@ def process_messages(ti) -> None:
         print("No messages to process")
         return
 
-    with open(MODEL_PATH, "rb") as f:
+    with open(os.getenv("MODEL_PATH"), "rb") as f:
         model = pickle.load(f)
 
     for message in messages:
@@ -145,7 +145,7 @@ def process_messages(ti) -> None:
         df["Class"] = predictions[0]
         insert_transactions(
             df,
-            f"host=postgres port=5432 dbname=credit-card user=norbert password={os.getenv('DB_PASS')}",
+            f"host={os.getenv('HOST')} port=5432 dbname={os.getenv('POSTGRES_DB')} user={os.getenv('PSQL_USERNAME')} password={os.getenv('POSTGRES_DB')}",
         )
         if predictions[0] == 1:
             print(

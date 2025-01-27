@@ -44,7 +44,7 @@ def create_table_query(
 
     return f"""
         CREATE TABLE IF NOT EXISTS {table_name} (
-            {','.join(columns)}
+            {",".join(columns)}
         );
     """
 
@@ -114,14 +114,14 @@ def csv_to_postgresql(
 
 
 if __name__ == "__main__":
-    conn_string = f"host=localhost port=5432 dbname=fraud_db user=norbert password={os.getenv("DB_PASS")}"
+    conn_string = f"host={os.getenv('HOST')} port=5432 dbname={os.getenv('POSTGRES_DB')} user={os.getenv('PSQL_USERNAME')} password={os.getenv('POSTGRES_DB')}"
 
     constraints = {"class": "CHECK (class IN (0, 1))"}
 
     rows_inserted = csv_to_postgresql(
         csv_path="creditcard.csv",
         conn_string=conn_string,
-        table_name="transactions",
+        table_name=os.getenv("POSTGRES_TABLE"),
         extra_constraints=constraints,
     )
 

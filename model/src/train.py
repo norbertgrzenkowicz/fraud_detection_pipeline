@@ -44,14 +44,15 @@ from sklearn.model_selection import KFold, StratifiedKFold
 import warnings
 import sys
 
+import fetch_psql_table
+
 sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), "/app/database/scripts"))
 )
-import fetch_psql_table
 
 warnings.filterwarnings("ignore")
 
-conn_string = f"host=postgres port=5432 dbname=credit-card user=norbert password={os.getenv('DB_PASS')}"
+conn_string = f"host={os.getenv('HOST')} port=5432 dbname={os.getenv('POSTGRES_DB')} user={os.getenv('PSQL_USERNAME')} password={os.getenv('POSTGRES_DB')}"
 
 
 def load_data(path):
@@ -61,7 +62,7 @@ def load_data(path):
 
 def load_data_from_db():
     return fetch_psql_table.fetch_from_postgresql(
-        conn_string=conn_string, table_name="transactions", limit=1000
+        conn_string=conn_string, table_name=os.getenv("POSTGRES_TABLE"), limit=1000
     )
 
 

@@ -15,11 +15,6 @@ sys.path.insert(
 )
 import train
 
-DOCKER_REGISTRY = "docker.io"
-MODEL_SERVICE_IMAGE = "fraud-api"
-MODEL_SERVICE_IMAGE_PUSH = "norbertgrzenkowicz/fraud-api"
-NAMESPACE = "default"
-
 
 def train_model():
     train.main()
@@ -48,7 +43,7 @@ def build_and_push_image():
 
         # Build the new image
         tag = datetime.now().strftime("%Y%m%d_%H%M%S")
-        full_image_name = f"{MODEL_SERVICE_IMAGE_PUSH}:{tag}"
+        full_image_name = f"{os.getenv('MODEL_SERVICE_IMAGE_PUSH')}:{tag}"
 
         # Build the Docker image
         client.images.build(
@@ -58,7 +53,7 @@ def build_and_push_image():
         )
 
         # Push the image
-        client.images.push(MODEL_SERVICE_IMAGE_PUSH, tag=tag)
+        client.images.push(os.getenv("MODEL_SERVICE_IMAGE_PUSH"), tag=tag)
 
         return full_image_name
     except Exception as e:

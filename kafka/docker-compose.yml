@@ -29,8 +29,6 @@ services:
     volumes:
       - ./src:/app
       - ../model/lr_model.pkl:/app/lr_model.pkl
-    environment:
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     command: ["python3", "synthetic_data.py"]
     # command: ["python3", "kafka_credit_card_data_producer.py"]
     # networks:

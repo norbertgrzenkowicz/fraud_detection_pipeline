@@ -64,8 +64,8 @@ def fetch_from_postgresql(
 
 
 if __name__ == "__main__":
-    conn_string = f"host=localhost port=5432 dbname=fraud_db user=norbert password={os.getenv("DB_PASS")}"
+    conn_string = f"host={os.getenv('HOST')} port=5432 dbname={os.getenv('POSTGRES_DB')} user={os.getenv('PSQL_USERNAME')} password={os.getenv('POSTGRES_DB')}"
 
     df = fetch_from_postgresql(
-        conn_string=conn_string, table_name="transactions", limit=1000
+        conn_string=conn_string, table_name=os.getenv("POSTGRES_TABLE"), limit=1000
     )

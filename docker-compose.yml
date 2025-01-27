@@ -1,9 +1,20 @@
 version: '3.8'
+
+x-environment-variables: &default-env-vars
+  POSTGRES_DB: credit-card
+  POSTGRES_USER: norbert
+  POSTGRES_PASSWORD: 1111
+  POSTGRES_TABLE: transactions
+  HOST: localhost
+  KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+  KAFKA_TOPIC: fraud
+
 services:
   postgres:
     extends:
       file: ./database/docker-compose.yml
       service: postgres
+
 
   kafka:
     extends:
@@ -14,16 +25,22 @@ services:
     extends:
       file: ./kafka/docker-compose.yml
       service: kafka_producer
+    environment:
+      DELAY: 0.1
+      NUMBER_OF_TRANSACTIONS: 200
 
   airflow:
     extends:
       file: ./airflow/docker-compose.yml
       service: airflow
+    environment:
+      - MODEL_PATH=/app/lr_model.pkl
+      - MODEL_SERVICE_PATH=/app/api
   # Uncomment to test fresh FastAPI
-  # fastapi:
-  #   extends:
-  #     file: ./api/docker-compose.yml
-  #     service: fastapi
+  fastapi:
+    extends:
+      file: ./api/docker-compose.yml
+      service: fastapi
 
 volumes:
   postgres_data:

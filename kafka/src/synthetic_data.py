@@ -21,7 +21,7 @@ class TransactionGenerator:
     def generate_single_transaction(self):
         """Generate a single transaction matching the original data format"""
         transaction = {
-            "Time": float(np.random.randint(0, 172792)),  # Range from original data
+            "Time": float(np.random.randint(0, 172792)),
         }
 
         for i in range(1, 29):
@@ -30,13 +30,13 @@ class TransactionGenerator:
         transaction["Amount"] = float(np.random.lognormal(mean=2, sigma=1.8))
 
         for key in transaction:
-            if key != "Time":  # Time is already integer
+            if key != "Time":
                 transaction[key] = round(transaction[key], 12)
 
         return transaction
 
     def generate_and_send_transactions(
-        self, n_transactions=None, delay=0.1, topic="fraud"
+        self, n_transactions=None, delay=0.1, topic=os.getenv("KAFKA_TOPIC")
     ):
         """Generate and send transactions to Kafka"""
         try:
@@ -74,7 +74,9 @@ def main():
         generator = TransactionGenerator()
 
         generator.generate_and_send_transactions(
-            n_transactions=200, delay=0.1, topic="fraud"
+            n_transactions=os.getenv("NUMBER_OF_TRANSACTIONS"),
+            delay=os.getenv("DELAY"),
+            topic=os.getenv("KAFKA_TOPIC"),
         )
     except KeyboardInterrupt:
         print("Stopping transaction generation...")
@@ -85,5 +87,5 @@ def main():
 
 
 if __name__ == "__main__":
-    time.sleep(5)
+    time.sleep(5)  # Wait for Kafka to start
     main()

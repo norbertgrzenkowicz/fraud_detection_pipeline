@@ -9,8 +9,8 @@ def insert_transactions(df: pd.DataFrame, conn_string: str) -> Optional[int]:
     try:
         with psycopg.connect(conn_string) as conn:
             with conn.cursor() as cur:
-                cur.execute("""
-                   CREATE TABLE IF NOT EXISTS transactions (
+                cur.execute(f"""
+                   CREATE TABLE IF NOT EXISTS {os.getenv("POSTGRES_TABLE")} (
                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                        id SERIAL PRIMARY KEY,
                        transaction_time FLOAT,
@@ -64,8 +64,8 @@ def insert_transactions(df: pd.DataFrame, conn_string: str) -> Optional[int]:
                 print("dupa")
 
                 cur.executemany(
-                    """
-                   INSERT INTO transactions (
+                    f"""
+                   INSERT INTO {os.getenv("POSTGRES_TABLE")} (
                        transaction_time, amount,
                        v1, v2, v3, v4, v5, v6, v7, v8, v9, v10,
                        v11, v12, v13, v14, v15, v16, v17, v18, v19, v20,
@@ -89,7 +89,7 @@ def get_fraud_stats(conn_string: str) -> pd.DataFrame:
     """Get statistical summary of transactions."""
     try:
         with psycopg.connect(conn_string) as conn:
-            query = """
+            query = f"""
                SELECT 
                    class,
                    COUNT(*) as transaction_count,
@@ -98,7 +98,7 @@ def get_fraud_stats(conn_string: str) -> pd.DataFrame:
                    MIN(amount) as min_amount,
                    AVG(v1)::NUMERIC as avg_v1,
                    AVG(v2)::NUMERIC as avg_v2
-               FROM transactions
+               FROM {os.getenv("POSTGRES_TABLE")}
                GROUP BY class
                ORDER BY class;
            """
@@ -114,7 +114,7 @@ def get_fraud_stats(conn_string: str) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    conn_string = f"host=localhost port=5432 dbname=fraud_db user=norbert password={os.getenv("DB_PASS")}"
+    conn_string = f"host={os.getenv('HOST')} port=5432 dbname={os.getenv('POSTGRES_DB')} user={os.getenv('PSQL_USERNAME')} password={os.getenv('POSTGRES_DB')}"
 
     sample_data = {
         "Time": [151286.0],

@@ -4,8 +4,6 @@ venv/
 __pycache__
 kafka_data/
 kafka-data/
-model/lr_model.pkl
-model/notebooks
 api/lr_model.pkl
 kubectl
 *.pdf

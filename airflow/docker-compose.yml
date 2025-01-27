@@ -4,15 +4,8 @@ services:
       context: .
       dockerfile: ../kafka/Dockerfile
     container_name: kafka_producer
-    # depends_on:
-    #   - kafka
     volumes:
       - ../kafka/src:/app
-      # - ../data/creditcard.csv:/app/data/creditcard.csv
-      # - ../model/lr_model.pkl:/app/lr_model.pkl
-    environment:
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-    # command: ["python3", "kafka_credit_card_data_producer.py"]
     command: ["python3", "synthetic_data.py"]
 
   airflow:
@@ -20,21 +13,15 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: airflow
-    # depends_on:
-    #   - postgres
-    #   - kafka
     ports:
       - "8090:8090"
     environment:
-      - DB_PASS=1111
       - AIRFLOW_HOME=~/airflow
       - AIRFLOW__WEBSERVER__WEB_SERVER_PORT=8090
-      # - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgres://norbert:1111@postgres:5432/credit-card
       - AIRFLOW__CORE__DAGS_FOLDER=/opt/airflow/dags
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - MODEL_PATH=/app/lr_model.pkl
-      - MODEL_SERVICE_PATH=/app/api
-      # airflow connections create-default-connections &&
+      - MODEL_PATH=/app/model/lr_model.pkl
+      - MODEL_SERVICE_IMAGE_PUSH=norbertgrzenkowicz/fraud-api
     command: >
       bash -c "
       airflow db init &&

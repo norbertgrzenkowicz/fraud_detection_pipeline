@@ -1,27 +1,15 @@
-name: Building Containers
+name: Docker Compose Action
 
-on:
-  push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+on: [push]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-    - name: Build Docker images
-      uses: hoverkraft-tech/compose-action@v2.1.0
-      with:
-        compose-file: ./docker-compose.yml
-        services: "fastapi kafka_producer airflow postgres kafka"
-        up-flags: "-d"
-        down-flags: ""
-        compose-flags: ""
-        cwd: "."
-        compose-version: "1.29.2"
-        github-token: ""
+      - name: Run docker-compose
+        uses: hoverkraft-tech/compose-action@v2.1.0
+        with:
+          compose-file: "./docker-compose.yml"

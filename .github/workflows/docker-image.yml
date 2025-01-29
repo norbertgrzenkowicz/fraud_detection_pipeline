@@ -13,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Docker Compose Action
     - uses: hoverkraft-tech/compose-action@v2.1.0
       with:
         # Default: ./docker-compose.yml

@@ -1,6 +1,7 @@
 services:
   fastapi:
-    image: norbertgrzenkowicz/fraud-api:latest
+    # Uncomment to test pulled FastAPI, lower image lacks ARM Manifest :D
+    # image: norbertgrzenkowicz/fraud-api:latest
     build:
       context: ./
       dockerfile: Dockerfile

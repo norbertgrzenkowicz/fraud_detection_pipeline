@@ -6,7 +6,6 @@ services:
     container_name: kafka_producer
     volumes:
       - ../kafka/src:/app
-    user: root
     command: ["python3", "synthetic_data.py"]
 
   airflow:

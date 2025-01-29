@@ -7,20 +7,21 @@ on:
     branches: [ "master" ]
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: hoverkraft-tech/compose-action@v2.1.0
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Build Docker images
+      uses: hoverkraft-tech/compose-action@v2.1.0
       with:
-        # Default: ./docker-compose.yml
-        compose-file: ""
-        services: ""
+        compose-file: ./docker-compose.yml
+        services: "fastapi kafka_producer airflow postgres kafka"
         up-flags: "-d"
-        down-flags: ""
-        compose-flags: ""
-        cwd: ""
-        compose-version: ""
-        github-token: ""
+        down-flags: "--remove-orphans"
+        compose-flags: "--build"
+        cwd: "."
+        compose-version: "1.29.2"
+        github-token: ${{ secrets.GITHUB_TOKEN }}

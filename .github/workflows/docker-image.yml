@@ -20,8 +20,8 @@ jobs:
         compose-file: ./docker-compose.yml
         services: "fastapi kafka_producer airflow postgres kafka"
         up-flags: "-d"
-        down-flags: "--remove-orphans"
-        compose-flags: "--build"
+        down-flags: ""
+        compose-flags: ""
         cwd: "."
         compose-version: "1.29.2"
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        github-token: ""

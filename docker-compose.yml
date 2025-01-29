@@ -1,5 +1,3 @@
-version: '3.3'
-
 x-environment-variables: &default-env-vars
   POSTGRES_DB: credit-card
   POSTGRES_USER: norbert
